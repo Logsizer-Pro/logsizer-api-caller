@@ -11,6 +11,33 @@ measures as usual in Logsizer — or picks a measurement already made — and pr
 **Send**; the caller gets a JSON description of the measurement and the photo with the
 markup. The API is a feature of Logsizer's Standard plan.
 
+```mermaid
+sequenceDiagram
+    autonumber
+    participant C as Calling app
+    participant L as Logsizer
+    actor U as User
+    C->>L: startActivityForResult, action MEASURE, request JSON (method, length_cm, title, result, metadata, all optional)
+    alt the request cannot be read
+        L-->>C: RESULT_CANCELED, error = invalid_request, error_message
+    else a demo account
+        L->>U: measuring for another app needs the Standard plan, Cancel
+        L-->>C: RESULT_CANCELED, error = plan_required
+    else
+        L->>U: the caller has requested a measurement: Select existing, Create new, Cancel
+        alt Select existing
+            U->>L: walks the groups, picks a finished measurement, OK
+        else Create new
+            U->>L: the form with the fixed fields, the camera, the markup, Send
+        else Cancel or Back
+            L-->>C: RESULT_CANCELED, no extras
+        end
+        L->>L: builds the result, calculated (volume, tally by the rule, pile) or raw (diameters as measured)
+        L-->>C: RESULT_OK, measurement = JSON with metadata as sent, data = content:// photo with a read grant
+        C->>C: copies the photo now, matches the result by metadata or id
+    end
+```
+
 ```kotlin
 val measure = registerForActivityResult(StartActivityForResult()) { result ->
     val data = result.data
