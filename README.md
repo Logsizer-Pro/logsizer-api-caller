@@ -27,7 +27,7 @@ classDiagram
     }
     class ActivityResult {
         RESULT_OK with extra measurement and data photo uri, read grant
-        RESULT_CANCELED, with extra error and error_message when the app's doing
+        RESULT_CANCELED, with extra error and error_message unless the user cancelled
     }
     class Measurement {
         String id
@@ -35,7 +35,7 @@ classDiagram
         String title
         int length_cm
         double volume_m3, calculated
-        double[] diameters_cm, raw, as measured
+        List~double~ diameters_cm, raw, as measured
         JSON metadata, as sent
     }
     class Logs {
