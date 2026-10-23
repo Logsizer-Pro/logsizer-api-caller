@@ -13,7 +13,6 @@ markup. The API is a feature of Logsizer's Standard plan.
 
 ```mermaid
 classDiagram
-    direction LR
     class MeasureIntent {
         action com.fosize.android.action.MEASURE
         extra request, a Request as JSON, optional
