@@ -12,30 +12,78 @@ measures as usual in Logsizer — or picks a measurement already made — and pr
 markup. The API is a feature of Logsizer's Standard plan.
 
 ```mermaid
-sequenceDiagram
-    autonumber
-    participant C as Calling app
-    participant L as Logsizer
-    actor U as User
-    C->>L: startActivityForResult, action MEASURE, request JSON (method, length_cm, title, result, metadata, all optional)
-    alt the request cannot be read
-        L-->>C: RESULT_CANCELED, error = invalid_request, error_message
-    else a demo account
-        L->>U: measuring for another app needs the Standard plan, Cancel
-        L-->>C: RESULT_CANCELED, error = plan_required
-    else
-        L->>U: the caller has requested a measurement: Select existing, Create new, Cancel
-        alt Select existing
-            U->>L: walks the groups, picks a finished measurement, OK
-        else Create new
-            U->>L: the form with the fixed fields, the camera, the markup, Send
-        else Cancel or Back
-            L-->>C: RESULT_CANCELED, no extras
-        end
-        L->>L: builds the result, calculated (volume, tally by the rule, pile) or raw (diameters as measured)
-        L-->>C: RESULT_OK, measurement = JSON with metadata as sent, data = content:// photo with a read grant
-        C->>C: copies the photo now, matches the result by metadata or id
-    end
+classDiagram
+    direction LR
+    class MeasureIntent {
+        action com.fosize.android.action.MEASURE
+        extra request, a Request as JSON, optional
+    }
+    class Request {
+        Method method, optional
+        int length_cm, optional
+        String title, optional
+        ResultKind result, calculated by default
+        JSON metadata, optional
+    }
+    class ActivityResult {
+        RESULT_OK with extra measurement and data photo uri, read grant
+        RESULT_CANCELED, with extra error and error_message when the app's doing
+    }
+    class Measurement {
+        String id
+        Method method
+        String title
+        int length_cm
+        double volume_m3, calculated
+        double[] diameters_cm, raw, as measured
+        JSON metadata, as sent
+    }
+    class Logs {
+        int count
+        Rule rule
+    }
+    class Diameter {
+        int diameter_cm
+        int count
+        double volume_m3
+    }
+    class Pile {
+        int width_cm
+        int height_cm
+        double area_m2
+        double density
+    }
+    class Location {
+        double latitude
+        double longitude
+    }
+    class Method {
+        <<enumeration>>
+        by_the_piece
+        pile
+        manual_pile
+    }
+    class ResultKind {
+        <<enumeration>>
+        calculated
+        raw
+    }
+    class Error {
+        <<enumeration>>
+        invalid_request
+        plan_required
+        failed
+    }
+    MeasureIntent *-- "0..1" Request
+    MeasureIntent ..> ActivityResult : startActivityForResult
+    ActivityResult *-- "0..1" Measurement : RESULT_OK
+    ActivityResult *-- "0..1" Error : RESULT_CANCELED
+    Measurement *-- "0..1" Logs : calculated, logs detected
+    Logs *-- "1..*" Diameter : tally by the rule
+    Measurement *-- "0..1" Pile : a pile
+    Measurement *-- "0..1" Location : a fix
+    Request ..> Method
+    Request ..> ResultKind
 ```
 
 ```kotlin
