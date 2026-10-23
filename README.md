@@ -191,6 +191,13 @@ you do not know.
 5. The result: the code, what was sent, every extra of the result by name (a JSON
    extra laid out), the photo's uri and the photo itself.
 
+## Installing
+
+Every commit on `master` publishes a [release](../../releases) with the APK, signed
+with the project's key, numbered by the build (`1.0.N`) so that each one installs over
+the one before. Download it to the phone and open it; Android asks once to allow
+installing from that source.
+
 ## Building
 
 AGP 9.4.1, Kotlin 2.4.10, Gradle 9.7, a JDK 21 for the daemon
@@ -202,5 +209,7 @@ installed), the Android SDK named in `local.properties` (`sdk.dir=…`). `minSdk
 ./gradlew :app:testDebugUnitTest # the presets against the contract
 ```
 
-Nothing is signed for release: this app is installed from a developer's machine, never
-published.
+GitHub Actions (`.github/workflows/build.yml`) builds the debug APK and runs the tests
+on every push, keeping the APK as the run's artifact, and on `master` also builds the
+release APK with the keystore held in the repository's secrets and publishes it. A
+release build on a developer's machine, without that keystore, is unsigned.
