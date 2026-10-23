@@ -59,9 +59,26 @@ classDiagram
         calculated
         raw
     }
+    class Rule {
+        <<enumeration>>
+        gost_2708_75_2cm
+        cylinder
+        doyle
+        poland
+        jas
+        middle_diameter
+        manitoba_cubic
+        nova_scotia_cubic
+        cubic_metre_rule
+        international_1_4
+        roy_log_rule
+        ontario_log_rule
+        scribner_decimal_c
+    }
     Request ..> Measurement : answered with
     Measurement *-- "0..1" Logs : calculated, logs detected
     Logs *-- "1..*" Diameter : tally by the rule
+    Logs ..> Rule
     Measurement *-- "0..1" Pile : a pile
     Measurement *-- "0..1" Location : a fix
     Request ..> Method
