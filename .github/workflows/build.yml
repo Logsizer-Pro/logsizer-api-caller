@@ -24,7 +24,7 @@ jobs:
         run: |
           sdkmanager=$(ls -d "$ANDROID_HOME"/cmdline-tools/*/bin/sdkmanager | sort -V | tail -1)
           yes | "$sdkmanager" --licenses > /dev/null
-          "$sdkmanager" "platforms;android-37" > /dev/null
+          "$sdkmanager" "platforms;android-37.0" > /dev/null
       - uses: gradle/actions/setup-gradle@v4
       - name: Build and test
         run: ./gradlew :app:assembleDebug :app:testDebugUnitTest --no-daemon
@@ -51,7 +51,7 @@ jobs:
         run: |
           sdkmanager=$(ls -d "$ANDROID_HOME"/cmdline-tools/*/bin/sdkmanager | sort -V | tail -1)
           yes | "$sdkmanager" --licenses > /dev/null
-          "$sdkmanager" "platforms;android-37" > /dev/null
+          "$sdkmanager" "platforms;android-37.0" > /dev/null
       - uses: gradle/actions/setup-gradle@v4
       - name: Keystore
         run: echo "$SIGNING_KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/release.jks"
