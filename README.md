@@ -13,20 +13,12 @@ markup. The API is a feature of Logsizer's Standard plan.
 
 ```mermaid
 classDiagram
-    class MeasureIntent {
-        action com.fosize.android.action.MEASURE
-        extra request, a Request as JSON, optional
-    }
     class Request {
         Method method, optional
         int length_cm, optional
         String title, optional
         ResultKind result, calculated by default
         JSON metadata, optional
-    }
-    class ActivityResult {
-        RESULT_OK with extra measurement and data photo uri, read grant
-        RESULT_CANCELED, with extra error and error_message unless the user cancelled
     }
     class Measurement {
         String id
@@ -67,16 +59,7 @@ classDiagram
         calculated
         raw
     }
-    class Error {
-        <<enumeration>>
-        invalid_request
-        plan_required
-        failed
-    }
-    MeasureIntent *-- "0..1" Request
-    MeasureIntent ..> ActivityResult : startActivityForResult
-    ActivityResult *-- "0..1" Measurement : RESULT_OK
-    ActivityResult *-- "0..1" Error : RESULT_CANCELED
+    Request ..> Measurement : answered with
     Measurement *-- "0..1" Logs : calculated, logs detected
     Logs *-- "1..*" Diameter : tally by the rule
     Measurement *-- "0..1" Pile : a pile
