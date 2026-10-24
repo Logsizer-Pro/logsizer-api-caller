@@ -25,6 +25,7 @@ classDiagram
         Method method
         String title
         int length_cm
+        Species species, optional
         double volume_m3, calculated
         List~double~ diameters_cm, raw, as measured
         JSON metadata, as sent
@@ -59,6 +60,10 @@ classDiagram
         calculated
         raw
     }
+    class Species {
+        <<enumeration>>
+        every code of species.csv
+    }
     class Rule {
         <<enumeration>>
         gost_2708_75_2cm
@@ -79,6 +84,7 @@ classDiagram
     Measurement *-- "0..1" Logs : calculated, logs detected
     Logs *-- "1..*" Diameter : tally by the rule
     Logs ..> Rule
+    Measurement ..> Species : the species given
     Measurement *-- "0..1" Pile : a pile
     Measurement *-- "0..1" Location : a fix
     Request ..> Method
@@ -150,6 +156,7 @@ Calculated (the default), metric throughout:
   "method": "pile",
   "title": "Lot 142",
   "length_cm": 300,
+  "species": "scots_pine",
   "volume_m3": 21.56,
   "logs": {
     "count": 202,
@@ -170,16 +177,24 @@ Calculated (the default), metric throughout:
 | `id` | yes | the measurement's id in Logsizer; the same measurement sent twice comes with the same id |
 | `method` | yes | `by_the_piece`, `pile` or `manual_pile` |
 | `title`, `length_cm` | yes | the measurement's name and the log length the volume was computed with |
+| `species` | when the measurement has one | the species the user gave it, as a code from [`species.csv`](species.csv) — `scots_pine`, `pedunculate_oak` |
 | `volume_m3` | yes | the measurement's volume as Logsizer shows it: by the piece, the sum of the logs by the rule; a pile, area × length × density |
 | `logs` | when logs were detected | `count`; `rule`, the log rule the volumes were computed by (`gost_2708_75_2cm`, `cylinder`, `doyle`, `poland`, `jas`, `middle_diameter`, `manitoba_cubic`, `nova_scotia_cubic`, `cubic_metre_rule`, `international_1_4`, `roy_log_rule`, `ontario_log_rule`, `scribner_decimal_c`); `diameters`, the tally — one row per diameter class of the rule, ascending |
 | `pile` | for a pile | the contour's extent and area, and the density coefficient the volume was multiplied by (1 = stacked volume) |
 | `location` | when Logsizer had a fix | the coordinates the measurement was stamped with |
 | `metadata` | when the request carried one | the request's `metadata`, as it came |
 
-Raw (`"result": "raw"`) carries `id`, `method`, `title`, `length_cm`, `location` and
-`metadata` as above, `diameters_cm` — one value per log as measured, to a hundredth of a
+Raw (`"result": "raw"`) carries `id`, `method`, `title`, `length_cm`, `species`,
+`location` and `metadata` as above, `diameters_cm` — one value per log as measured, to a hundredth of a
 centimetre, not rounded to any rule — and the same `pile` block for a pile; no volume,
 no rule, no tally.
+
+### Species
+
+[`species.csv`](species.csv) lists every code `species` can take, with the species'
+Latin and English names — the list Logsizer offers, generated from it. The list only
+grows and a code never changes its meaning; a code your copy does not have is a species
+added since, so take a newer copy of the file rather than refuse the result.
 
 ### Errors
 
