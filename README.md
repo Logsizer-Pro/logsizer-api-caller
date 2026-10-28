@@ -27,15 +27,23 @@ classDiagram
         int length_cm
         Species species, optional
         double volume_m3, calculated
-        List~double~ diameters_cm, raw, as measured
         JSON metadata, as sent
     }
     class Logs {
         int count
-        Rule rule
+        Rule rule, calculated
     }
     class Diameter {
         int diameter_cm
+        int count
+        double volume_m3
+    }
+    class MeasuredLog {
+        double diameter_cm, as measured
+        Grade grade, when graded
+    }
+    class GradeCount {
+        Grade grade
         int count
         double volume_m3
     }
@@ -80,9 +88,22 @@ classDiagram
         ontario_log_rule
         scribner_decimal_c
     }
+    class Grade {
+        <<enumeration>>
+        a
+        b
+        c
+        d
+        none
+    }
     Request ..> Measurement : answered with
-    Measurement *-- "0..1" Logs : calculated, logs detected
-    Logs *-- "1..*" Diameter : tally by the rule
+    Measurement *-- "0..1" Logs : logs detected
+    Logs *-- "0..*" Diameter : calculated, tally by the rule
+    Logs *-- "0..*" GradeCount : calculated, each grade's totals, when graded
+    Diameter *-- "0..*" GradeCount : by grade, when the logs are graded
+    GradeCount ..> Grade
+    Logs *-- "0..*" MeasuredLog : raw, each log as measured
+    MeasuredLog ..> Grade
     Logs ..> Rule
     Measurement ..> Species : the species given
     Measurement *-- "0..1" Pile : a pile
@@ -179,15 +200,70 @@ Calculated (the default), metric throughout:
 | `title`, `length_cm` | yes | the measurement's name and the log length the volume was computed with |
 | `species` | when the measurement has one | the species the user gave it, as a code from [`species.csv`](species.csv) — `scots_pine`, `pedunculate_oak` |
 | `volume_m3` | yes | the measurement's volume as Logsizer shows it: by the piece, the sum of the logs by the rule; a pile, area × length × density |
-| `logs` | when logs were detected | `count`; `rule`, the log rule the volumes were computed by (`gost_2708_75_2cm`, `cylinder`, `doyle`, `poland`, `jas`, `middle_diameter`, `manitoba_cubic`, `nova_scotia_cubic`, `cubic_metre_rule`, `international_1_4`, `roy_log_rule`, `ontario_log_rule`, `scribner_decimal_c`); `diameters`, the tally — one row per diameter class of the rule, ascending |
+| `logs` | when logs were detected | `count`; `rule`, the log rule the volumes were computed by (`gost_2708_75_2cm`, `cylinder`, `doyle`, `poland`, `jas`, `middle_diameter`, `manitoba_cubic`, `nova_scotia_cubic`, `cubic_metre_rule`, `international_1_4`, `roy_log_rule`, `ontario_log_rule`, `scribner_decimal_c`); `diameters`, the tally — one row per diameter class of the rule, ascending, with its `grades` when the logs have grades; `grades`, each grade's totals, when they have (*Grades*, below) |
 | `pile` | for a pile | the contour's extent and area, and the density coefficient the volume was multiplied by (1 = stacked volume) |
 | `location` | when Logsizer had a fix | the coordinates the measurement was stamped with |
 | `metadata` | when the request carried one | the request's `metadata`, as it came |
 
 Raw (`"result": "raw"`) carries `id`, `method`, `title`, `length_cm`, `species`,
-`location` and `metadata` as above, `diameters_cm` — one value per log as measured, to a hundredth of a
-centimetre, not rounded to any rule — and the same `pile` block for a pile; no volume,
-no rule, no tally.
+`location` and `metadata` as above, `logs` with `count` and `measured` — one object per log:
+its `diameter_cm` as measured, to a hundredth of a centimetre, not rounded to any rule, and its
+`grade` when the logs have grades — and the same `pile` block for a pile; no volume, no rule,
+no tally.
+
+### Grades
+
+A log can carry a grade, A to D: the one the paint mark on its face names under the
+measurement's colours, or one set by hand on the markup. When at
+least one log of the measurement has a grade, the result carries them in either kind.
+
+**Calculated**: every row of `logs.diameters` carries `grades` — the row's logs by grade,
+`a` to `d` and then `none`, only the grades the row has logs of, each with its `count` and
+`volume_m3`. They add up to the row, up to the rounding of each volume to four decimals:
+
+```json
+{
+  "diameter_cm": 24, "count": 12, "volume_m3": 1.63,
+  "grades": [
+    { "grade": "a", "count": 5, "volume_m3": 0.68 },
+    { "grade": "c", "count": 4, "volume_m3": 0.54 },
+    { "grade": "none", "count": 3, "volume_m3": 0.41 }
+  ]
+}
+```
+
+Beside the rows, `logs.grades` holds each grade's totals over all of them, in the same
+order — what the Calculation tab lists under its totals row:
+
+```json
+"grades": [
+  { "grade": "a", "count": 5, "volume_m3": 0.68 },
+  { "grade": "b", "count": 20, "volume_m3": 3.19 },
+  { "grade": "c", "count": 4, "volume_m3": 0.54 },
+  { "grade": "none", "count": 14, "volume_m3": 2.16 }
+]
+```
+
+**Raw**: every log of `logs.measured` carries its `grade`:
+
+```json
+"logs": {
+  "count": 3,
+  "measured": [
+    { "diameter_cm": 23.41, "grade": "a" },
+    { "diameter_cm": 25.08, "grade": "none" },
+    { "diameter_cm": 24.97, "grade": "c" }
+  ]
+}
+```
+
+`none` is a log without a grade: no mark Logsizer saw, a mark of a colour no grade has
+(orange and white are not offered), or a grade taken away by hand. A measurement none of
+whose logs has a grade — its colours name no paint, or it was made before Logsizer read
+marks — carries no `grades` at all, and its result is what it always was. Which paint
+marks which grade is the measurement's own, from Logsizer's Settings; the result does not
+carry it. A pile's logs are graded as a measurement by the piece's are; a manual pile has
+no logs to grade.
 
 ### Species
 
