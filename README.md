@@ -211,6 +211,12 @@ its `diameter_cm` as measured, to a hundredth of a centimetre, not rounded to an
 `grade` when the logs have grades — and the same `pile` block for a pile; no volume, no rule,
 no tally.
 
+**Breaking change in Logsizer 1.6.0.** Logsizer 1.5.0 answered a raw result with
+`diameters_cm`, the diameters as a bare list of numbers. From 1.6.0 they come as
+`logs.measured`, and `diameters_cm` is gone, under the same action: a caller written for
+1.5.0's raw result finds nothing where it looked and has to be updated. The calculated result
+only gained fields.
+
 ### Grades
 
 A log can carry a grade, A to D: the one the paint mark on its face names under the
