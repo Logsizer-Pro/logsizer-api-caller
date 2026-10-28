@@ -263,7 +263,8 @@ whose logs has a grade — its colours name no paint, or it was made before Logs
 marks — carries no `grades` at all, and its result is what it always was. Which paint
 marks which grade is the measurement's own, from Logsizer's Settings; the result does not
 carry it. A pile's logs are graded as a measurement by the piece's are; a manual pile has
-no logs to grade.
+no logs to grade. The photo shows each graded log's badge — a disc of its grade's paint with
+the letter on the log's outline — as the markup does.
 
 ### Species
 
