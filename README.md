@@ -335,7 +335,7 @@ installing from that source.
 
 ## Building
 
-AGP 9.4.1, Kotlin 2.4.10, Gradle 9.7, a JDK 21 for the daemon
+AGP 9.5.0, Kotlin 2.4.10, Gradle 9.7, a JDK 21 for the daemon
 (`gradle/gradle-daemon-jvm.properties`; the foojay resolver downloads one where none is
 installed), the Android SDK named in `local.properties` (`sdk.dir=…`). `minSdk` is 30.
 

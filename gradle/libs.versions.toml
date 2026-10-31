@@ -1,7 +1,7 @@
 # The same tool versions as the Logsizer app (android-app/gradle/libs.versions.toml),
 # so that one machine builds both without a second toolchain.
 [versions]
-androidGradlePlugin = "9.4.1"
+androidGradlePlugin = "9.5.0"
 kotlin = "2.4.10"
 composeBom = "2026.08.00"
 activity = "1.13.0"
