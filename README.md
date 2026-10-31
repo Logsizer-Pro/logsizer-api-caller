@@ -104,6 +104,7 @@ classDiagram
     GradeCount ..> Grade
     Logs *-- "0..*" MeasuredLog : raw, each log as measured
     MeasuredLog ..> Grade
+    note for Logs "Graded only by the piece, with grade recognition on.\nA pile's logs carry no grades; a manual pile has no logs."
     Logs ..> Rule
     Measurement ..> Species : the species given
     Measurement *-- "0..1" Pile : a pile
@@ -200,7 +201,7 @@ Calculated (the default), metric throughout:
 | `title`, `length_cm` | yes | the measurement's name and the log length the volume was computed with |
 | `species` | when the measurement has one | the species the user gave it, as a code from [`species.csv`](species.csv) — `scots_pine`, `pedunculate_oak` |
 | `volume_m3` | yes | the measurement's volume as Logsizer shows it: by the piece, the sum of the logs by the rule; a pile, area × length × density |
-| `logs` | when logs were detected | `count`; `rule`, the log rule the volumes were computed by (`gost_2708_75_2cm`, `cylinder`, `doyle`, `poland`, `jas`, `middle_diameter`, `manitoba_cubic`, `nova_scotia_cubic`, `cubic_metre_rule`, `international_1_4`, `roy_log_rule`, `ontario_log_rule`, `scribner_decimal_c`); `diameters`, the tally — one row per diameter class of the rule, ascending, with its `grades` when the logs have grades; `grades`, each grade's totals, when they have (*Grades*, below) |
+| `logs` | when logs were detected | `count`; `rule`, the log rule the volumes were computed by (`gost_2708_75_2cm`, `cylinder`, `doyle`, `poland`, `jas`, `middle_diameter`, `manitoba_cubic`, `nova_scotia_cubic`, `cubic_metre_rule`, `international_1_4`, `roy_log_rule`, `ontario_log_rule`, `scribner_decimal_c`); `diameters`, the tally — one row per diameter class of the rule, ascending, with its `grades` when the logs have grades; `grades`, each grade's totals, when they have — a measurement by the piece with grade recognition on (*Grades*, below) |
 | `pile` | for a pile | the contour's extent and area, and the density coefficient the volume was multiplied by (1 = stacked volume) |
 | `location` | when Logsizer had a fix | the coordinates the measurement was stamped with |
 | `metadata` | when the request carried one | the request's `metadata`, as it came |
@@ -220,8 +221,12 @@ only gained fields.
 ### Grades
 
 A log can carry a grade, A to D: the one the paint mark on its face names under the
-measurement's colours, or one set by hand on the markup. When at
-least one log of the measurement has a grade, the result carries them in either kind.
+measurement's colours, or one set by hand on the markup. Only a measurement by the piece
+grades its logs, and only while its **grade recognition** is on. The user decides that, not
+the request: Logsizer's new-measurement form offers **Recognize grades by color** for a
+measurement by the piece, on by default, and the measurement's menu turns it on or off later —
+off, every grade goes, a hand-set one among them. When at least one log of the measurement
+has a grade, the result carries them in either kind.
 
 **Calculated**: every row of `logs.diameters` carries `grades` — the row's logs by grade,
 `a` to `d` and then `none`, only the grades the row has logs of, each with its `count` and
@@ -265,12 +270,27 @@ order — what the Calculation tab lists under its totals row:
 
 `none` is a log without a grade: no mark Logsizer saw, a mark of a colour no grade has
 (orange and white are not offered), or a grade taken away by hand. A measurement none of
-whose logs has a grade — its colours name no paint, or it was made before Logsizer read
-marks — carries no `grades` at all, and its result is what it always was. Which paint
-marks which grade is the measurement's own, from Logsizer's Settings; the result does not
-carry it. A pile's logs are graded as a measurement by the piece's are; a manual pile has
-no logs to grade. The photo shows each graded log's badge — a disc of its grade's paint with
-the letter on the log's outline — as the markup does.
+whose logs has a grade carries no `grades` at all, and its result is what it always was: a
+pile — its logs are not graded — and a manual pile, which has no logs; a measurement by the
+piece with its grade recognition off; one whose colours name no paint; one made before
+Logsizer read marks and not graded since. Which paint marks which grade is the measurement's
+own, from Logsizer's Settings; the result does not carry it, nor whether recognition is on.
+The photo shows each graded log's badge — a disc of its grade's paint with the letter on the
+log's outline — as the markup does.
+
+### Logsizer versions
+
+The action has answered since Logsizer 1.5.0. What changed in the result since, by the
+version that changed it:
+
+| Logsizer | The result |
+|----------|------------|
+| 1.5.0 | the API's first release; a raw result carries the diameters as `diameters_cm`, a bare list of numbers |
+| 1.6.0, 1.6.1 | the grades: `grades` in each row of the tally and `logs.grades`, a `grade` on each log of a raw result — the logs of a measurement by the piece and of a pile alike; a raw result's diameters move to `logs.measured`, one object per log, and `diameters_cm` is gone — the one breaking change |
+| 1.6.2 and later | only a measurement by the piece with its grade recognition on is graded: a pile's result carries no grades, and nor does a measurement whose user turned recognition off. No field changed — the grades were always there only when the logs had them |
+
+A result says nothing of the version that wrote it: read what is there, and ignore what you
+do not know.
 
 ### Species
 
